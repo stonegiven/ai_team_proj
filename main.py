@@ -6,12 +6,12 @@ from machines_p1 import P1
 from machines_p2 import P2
 import time
 
-players = {
+players = { 
     1: P1,
     2: P2
 }
 
-pygame.init()
+pygame.init() 
 
 # Colors
 WHITE = (255, 255, 255)
@@ -147,7 +147,7 @@ def display_message(message, color=WHITE):
 
 def second2hhmmss(seconds):
     if seconds >= 3600:
-        hh = seconds//3600
+        hh = seconds//3600 
         mm = (seconds-(hh*3600))//60
         ss = seconds-(hh*3600)-(mm*60)
         return f"{hh:.0f}h {mm:.0f}m {ss:.1f}s"
@@ -180,8 +180,8 @@ draw_lines()
 draw_available_pieces()
 
 while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+    for event in pygame.event.get(): 
+        if event.type == pygame.QUIT: 
             pygame.quit()
             sys.exit()
 
@@ -217,7 +217,7 @@ while True:
                         winner = turn
                     elif is_board_full():
                         game_over = True
-                        winner = None
+                        winner = None 
                     else:
                         turn = 3 - turn
                         flag = "select_piece"
@@ -236,7 +236,7 @@ while True:
             draw_pieces()
             draw_available_pieces()
             if selected_piece:
-                display_message(f"P{turn} placing pieces")
+                display_message(f"P{turn} placing pieces") 
                 display_time(total_time_consumption)
             else:
                 display_message(f"P{3-turn} selecting pieces")
@@ -251,4 +251,4 @@ while True:
                 display_message("Draw!", GRAY)
                 display_time(total_time_consumption)
 
-        pygame.display.update()
+        pygame.display.update() 
