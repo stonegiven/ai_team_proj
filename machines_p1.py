@@ -72,8 +72,8 @@ def print_child_data(node):
     for child in node.childNodes:
         print("..........................",child.depth)
         print_board(child.board)
-        # print('x:',child.x)
-        # print('n: ',child.n)
+        print('x:',child.x)
+        print('n: ',child.n)
         print('done:', child.done)
         print(child.data)
 
@@ -222,16 +222,17 @@ class P1():
     def select_piece(self):
         head_set([P1.current_location]) # 헤드 수정
         selected_piece = monte_carlo(P1.head) # 몬테카를로 -> select
-        print("P1: selected...", selected_piece, toString_mbti(selected_piece))
+        print("P1: selected ", selected_piece, toString_mbti(selected_piece))
         P1.current_piece = selected_piece
         P1.current_board = copy.deepcopy(self.board)
         return selected_piece
 
     # 내가 둘 location 선정
     def place_piece(self, selected_piece):
-        head_set([P1.current_piece, detect_placed_location(P1.current_board, self.board), selected_piece])
+        placed_loc = detect_placed_location(P1.current_board, self.board)
+        head_set([P1.current_piece, placed_loc, selected_piece])
         position = monte_carlo(P1.head)
-        print("P1: placed...", position)
+        print("P1: placed at", position)
         P1.current_location = position
         return position
     
@@ -293,6 +294,11 @@ def select_to_roll_child(node):
 
 # head노드의 자식중 최선의 선택을 고름
 def select_best_child(node):
+    # for child in node.childNodes:
+    #     print_child_data(child)
+    # print('....................................')
+    # print_child_data(node)
+    # print(node.done)
     return max(node.childNodes, key=lambda child: child.x + child.done) # done을 고려함으로써 승패를 확정
 
 # simualte   
@@ -358,10 +364,14 @@ def backpropagate(node, x):
         # 상대의 select_Node    ->  1
 
         # child가 완전한 트리가 됨에 따라 부모도 완전해졌는지 검사
-        if node.childNodes:   
+        if node.childNodes:
             trigger = True
 
             for child in node.childNodes:
+                if node.done:
+                    trigger = False
+                    break
+
                 if child.done == adder:
                     node.done = adder
                     trigger = False
