@@ -6,8 +6,8 @@ import time
 import copy
 BOARD_ROWS = 4
 BOARD_COLS = 4
-EXPLORATION_WEIGHT = 1.0
-WEIGHT_CHANGE = 0.02 # 뒤로갈 수록 가중치를 줄여 집중탐색할거임
+EXPLORATION_WEIGHT = 1.5
+WEIGHT_CHANGE = 0.04 # 뒤로갈 수록 가중치를 줄여 집중탐색할거임
 
 CALC_TIME = [1,1,1,1,2,2,2,2,2,2,2,2,2,14,21,35,39,44,49,54,65,54,49,44,39,35,31,1,1,1,1,1]
 # CALC_TIME = [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]
@@ -294,11 +294,6 @@ def select_to_roll_child(node):
 
 # head노드의 자식중 최선의 선택을 고름
 def select_best_child(node):
-    # for child in node.childNodes:
-    #     print_child_data(child)
-    # print('....................................')
-    # print_child_data(node)
-    # print(node.done)
     return max(node.childNodes, key=lambda child: child.x + child.done) # done을 고려함으로써 승패를 확정
 
 # simualte   
