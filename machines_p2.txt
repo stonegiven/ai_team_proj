@@ -302,13 +302,6 @@ def simulate_game(node):
     temp_able_locs = detect_able_locs(temp_board)
     current_mine = node.mine # 현재 바라보는 노드가 내것인가 상대것인가
 
-    #select노드였다면 초반에 추가 진행 + 1 (simulate하기에 부적합하게 생겼음)
-    if (isinstance(node, select_Node)):
-        current_mine = not current_mine
-        row, col = random.choice(temp_able_locs)
-        temp_able_locs.remove((row,col))
-        temp_board[row][col] = pieces.index(node.data) + 1
-
     # 게임이 끝난 노드인지 확인
     if check_win(temp_board):
         if (current_mine):
@@ -320,9 +313,16 @@ def simulate_game(node):
     if not len(temp_able_pieces):
         node.done = 0.0001
 
+    #select노드였다면 초반에 추가 진행 + 1 (simulate하기에 부적합하게 생겼음)
+    if (isinstance(node, select_Node)):
+        current_mine = not current_mine
+        row, col = random.choice(temp_able_locs)
+        temp_able_locs.remove((row,col))
+        temp_board[row][col] = pieces.index(node.data) + 1
+
     # 게임이 끝날때 까지 계속 simulate
     while not check_win(temp_board):
-        if (not temp_able_pieces or not temp_able_locs):
+        if (not temp_able_pieces):
             return 0
         
         current_mine = not current_mine
@@ -355,15 +355,16 @@ def backpropagate(node, x):
         # 상대의 select_Node    ->  1
 
         # child가 완전한 트리가 됨에 따라 부모도 완전해졌는지 검사
-        if len(node.childNodes):    
-            trigger = True   
+        if node.childNodes:   
+            trigger = True 
+
             for child in node.childNodes:
                 if child.done == adder:
                     node.done = adder
                     trigger = False
                     break
 
-                elif child.done != -adder:
+                if child.done != -adder:
                     trigger = False
                     continue
 
