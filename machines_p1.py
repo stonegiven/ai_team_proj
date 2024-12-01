@@ -25,7 +25,7 @@ pieces = [(i, j, k, l) for i in range(2) for j in range(2) for k in range(2) for
 # done은 이기면 1, 지면 -1, 비기면 0.0001을 지니게 됩니다. simulate을 돌릴지, best_child인지 검사할때 중요하게 쓰입니다.
 # done은 한번 갱신되면 부모노드의 done에도 영향을 줍니다.
 # 
-# ucb의 상수값은 10에서 천천히 내려와 범위탐색에서 집중탐색으로 전환합니다. (그러길 바라..)
+# ucb의 상수값은 1.5에서 천천히 내려와 범위탐색에서 집중탐색으로 전환합니다. (그러길 바라..)
 # ucb의 값을 계산할때, x값(시뮬레이션 평균값)은 절댓값을 취했습니다.
 
 # 코드 순서
@@ -160,7 +160,7 @@ class select_Node():
         self.childNodes = []            # 자식노드(class: place_Node)
         self.x = 0.0                    # 시뮬레이션 평균값
         self.n = 0                      # 방문 수
-        self.done = 0                  # 승패판단이 명확해짐 (1: 내가 이김 0.0001: 무승부 -1: 상대가 이길 수 있음)
+        self.done = 0                   # 승패판단이 명확해짐 (1: 내가 이김 0.0001: 무승부 -1: 상대가 이길 수 있음)
 
     #childNodes확장 (이미 있는것 재외)
     def expand(self):
@@ -188,7 +188,7 @@ class place_Node():
         self.childNodes = []            # 자식노드(class: place_Node)
         self.x = 0.0                    # 시뮬레이션 평균값
         self.n = 0                      # 방문 수
-        self.done = 0                  # 승패판단이 명확해짐 (1: 내가 이김 0.0001: 무승부 -1: 상대가 이길 수 있음)
+        self.done = 0                   # 승패판단이 명확해짐 (1: 내가 이김 0.0001: 무승부 -1: 상대가 이길 수 있음)
     
     #childNodes확장 (이미 있는것 재외)
     def expand(self):

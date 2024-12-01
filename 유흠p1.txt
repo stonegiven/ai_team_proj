@@ -1,0 +1,115 @@
+import random
+import copy
+from itertools import product
+import time
+
+class P1():
+    #초시화
+    def __init__(self, board, available_pieces, total_time_consumption=None):
+        self.pieces = [(i, j, k, l) for i in range(2) for j in range(2) for k in range(2) for l in range(2)] #가능한 모든 바둑돌
+        self.board = board #현재 바둑판 상태
+        self.available_pieces = available_pieces #사용 가능한 바둑돌
+        self.total_time_consumption = total_time_consumption #시간 기록
+
+    #상대에게 불리한 바둑돌을 시뮬레이션하여 선택
+    def select_piece(self):
+        start_time = time.time()  #시간 기록
+        simulations = {} #바둑돌당 시뮬레이션 승리 횟수 저장
+        
+        for piece in self.available_pieces:
+            simulations[piece] = 0
+            for _ in range(100): # 100번
+                if self._simulate_game(selected_piece=piece):
+                    simulations[piece] += 1 #승리 횟수++
+                    
+        best_piece = max(simulations, key=simulations.get)
+        end_time = time.time() 
+    
+        #바둑돌 검사
+        print(f"Selected piece: {best_piece} (Win rate: {simulations[best_piece] / 100:.2%})")
+        
+        #시간 갱신
+        if self.total_time_consumption is not None:
+            self.total_time_consumption[2] += end_time - start_time 
+            
+        return best_piece
+
+    #가장 좋은 위치에 바둑돌을 선택
+    def place_piece(self, selected_piece):
+        start_time = time.time() 
+        available_locs = [(row, col) for row, col in product(range(4), range(4)) if self.board[row][col] == 0] #빈자리 찾음
+        simulations = {} #바둑돌당 시뮬레이션 승리 횟수 저장
+        
+        for loc in available_locs:
+            simulations[loc] = 0
+            for _ in range(100):  # 100번
+                if self._simulate_game(place_loc=loc, selected_piece=selected_piece):
+                    simulations[loc] += 1 #승리 횟수++
+                    
+        best_loc = max(simulations, key=simulations.get)
+        end_time = time.time()  
+        
+        #위치 검사
+        print(f"Placed piece {selected_piece} at location {best_loc} (Win rate: {simulations[best_loc] / 100:.2%})")
+        
+        #시간 갱신
+        if self.total_time_consumption is not None:
+            self.total_time_consumption[2] += end_time - start_time  
+            
+        return best_loc
+
+    def _simulate_game(self, selected_piece=None, place_loc=None):
+        #복사 사용
+        board_copy = copy.deepcopy(self.board)
+        available_pieces_copy = copy.deepcopy(self.available_pieces)
+
+        #시뮬레이션 바둑판 변화
+        if selected_piece and place_loc:
+            row, col = place_loc
+            board_copy[row][col] = self.pieces.index(selected_piece) + 1
+            available_pieces_copy.remove(selected_piece)
+
+        #시뮬레이션 끝같이
+        turn = 1 #player1
+        while True:
+            if self._check_win(board_copy):
+                return turn == 1  #player1
+            if len(available_pieces_copy) == 0: #게임 무승부
+                break  
+            
+            piece = random.choice(available_pieces_copy) #random 선택
+            available_pieces_copy.remove(piece)
+
+            available_locs = [(row, col) for row in range(4) for col in range(4) if board_copy[row][col] == 0]
+            if available_locs:
+                loc = random.choice(available_locs) #random 넣음
+                row, col = loc
+                board_copy[row][col] = self.pieces.index(piece) + 1
+            turn = 3 - turn  #player change
+            
+        return False
+
+    def _check_win(self, board):
+        for row in range(4):
+            if self._check_line([board[row][col] for col in range(4)]):
+                return True
+        for col in range(4):
+            if self._check_line([board[row][col] for row in range(4)]):
+                return True
+        #대각선
+        if self._check_line([board[i][i] for i in range(4)]) or self._check_line([board[i][3-i] for i in range(4)]):
+            return True
+        
+        return False
+
+    def _check_line(self, line):
+        if 0 in line:
+            return False
+        
+        # 바둑돌 속성 검사
+        pieces = [self.pieces[idx - 1] for idx in line if idx > 0]
+        for i in range(4):
+            if len(set(p[i] for p in pieces)) == 1:
+                return True
+            
+        return False

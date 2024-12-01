@@ -5,6 +5,8 @@ from itertools import product
 import time
 import math
 from copy import deepcopy
+from concurrent.futures import ThreadPoolExecutor
+
 
 class Node:
     def __init__(self, state, parent=None):
@@ -41,11 +43,28 @@ class MCTS:
     def best_action(self, time_limit=300):
         """Run MCTS within a time limit to determine the best action."""
         start_time = time.time()
+        simulation_count = 0
+
         while time.time() - start_time < time_limit:
-            node = self._select(self.root)
-            reward = self._simulate(node.state)
-            self._backup(node, reward)
-        return self.root.best_child(c_param=0)  # Select based on win rate
+            self._run_simulation()  # Perform one simulation
+            simulation_count += 1
+
+        print(f"Total simulations run: {simulation_count}")
+        return self.root.best_child(c_param=0)  # Select the best child based on win rate
+
+
+    def _run_simulation(self):
+        """Perform one iteration of MCTS: selection, expansion, simulation, and backpropagation."""
+        # Step 1: Selection - Traverse the tree to find a node to simulate
+        node = self._select(self.root)
+
+        # Step 2: Simulation - Run a random simulation from the selected node
+        reward = self._simulate(node.state)
+
+        # Step 3: Backpropagation - Update the tree with the simulation result
+        self._backup(node, reward)
+
+
 
     def _select(self, node):
         while not node.state.is_terminal():
@@ -83,7 +102,7 @@ class MCTS:
 
 import time
 
-class P2:
+class P1:
     def __init__(self, board, available_pieces):
         self.pieces = [(i, j, k, l) for i in range(2) for j in range(2) for k in range(2) for l in range(2)]
         self.board = board  # Current game board (0: empty, 1~16: piece indices)
@@ -179,29 +198,52 @@ class P2:
             if piece in sim_available_pieces:
                 sim_available_pieces.remove(piece)
 
+            # 생성된 GameState가 제대로 초기화되었는지 확인
             game_state = GameState(sim_board, sim_available_pieces, self.pieces, simulate_for_opponent)
-            root = Node(game_state)
+            print(f"Simulated GameState: {game_state.board}")
 
+            root = Node(game_state)
             mcts = MCTS(root)
-            time_limit = 7  # 5 minutes in seconds
-            best_action = mcts.best_action(time_limit=time_limit / 10)  # Divide time across iterations
+            time_limit = 10  # 초 단위로 제한 시간
+            best_action = mcts.best_action(time_limit=time_limit / 10)
 
             return best_action.state.result()
         except Exception as e:
-            print(f"Simulation error: {e}")
+            print(f"Simulation error: {e}")  # 디버깅 출력을 추가
             return 0
+
+
+    def _heuristic_evaluation(self, state, move):
+        """간단한 휴리스틱 평가."""
+        row, col = move
+        temp_board = deepcopy(state.board)
+        temp_board[row][col] = 1  # 임시로 해당 위치에 배치
+        temp_state = GameState(temp_board, state.available_pieces, state.pieces, state.is_opponent_turn)
+        return temp_state.evaluate_board()
+
 
     
     def evaluate_board(self):
-        """Evaluate the board for scoring."""
+        """더 정교한 보드 상태 평가 함수."""
         score = 0
         for row in range(4):
             for col in range(4):
                 if self.board[row][col] == 0:
                     score += 1  # 빈 칸 보너스
+                elif self.board[row][col] > 0:
+                    piece_idx = self.board[row][col] - 1
+                    piece = self.pieces[piece_idx]
+                    # 각 특성이 같거나 다른 정도에 따라 점수 추가
+                    for i in range(4):
+                        if all(p[i] == piece[i] for p in self._get_line_pieces(row, col)):
+                            score += 10
+                        elif len(set(p[i] for p in self._get_line_pieces(row, col))) == 4:
+                            score -= 10
+
         if self._check_win():
-            score += 1000 if not self.is_opponent_turn else -1000  # 승/패 점수
+            score += 1000 if not self.is_opponent_turn else -1000  # 승리/패배 큰 보너스
         return score
+
 
 class GameState:
     def __init__(self, board, available_pieces, pieces, is_opponent_turn):
